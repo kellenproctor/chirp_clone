@@ -1,0 +1,4 @@
+{
+  // for tailwind @directives in globals.css
+  "css.lint.unknownAtRules": "ignore"
+}
