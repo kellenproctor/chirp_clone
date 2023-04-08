@@ -1,8 +1,11 @@
 import { SignInButton, SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
+import { type RouterOutputs, api } from "~/utils/api";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-import { api } from "~/utils/api";
+dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
   const { user } = useUser();
@@ -17,6 +20,25 @@ const CreatePostWizard = () => {
         placeholder="Type some emojis!"
         className="grow rounded-md bg-transparent pl-4 text-4xl outline-none"
       />
+    </div>
+  );
+};
+
+type PostWithUser = RouterOutputs["posts"]["getAll"][number];
+
+const PostView = (props: PostWithUser) => {
+  return (
+    <div className="relative mb-2 rounded-md border-4 bg-gray-400 p-4 pt-1 text-center text-3xl">
+      <div className="absolute -left-5 -top-5">
+        <img
+          src={props.author?.profileImageUrl}
+          alt="Post author profile image"
+          className="h-10 w-10 rounded-full border-2"
+        />
+      </div>
+      <div className="pl-2 text-xs">{`@${props.author.username}`}</div>
+      <div className="pb-2">{props.post.content}</div>
+      <div className="absolute bottom-1 right-1 text-xs">{dayjs(props.post.createdAt).fromNow()}</div>
     </div>
   );
 };
@@ -48,20 +70,8 @@ const Home: NextPage = () => {
         <CreatePostWizard />
         <div className="flex min-h-screen flex-col justify-center">
           {isLoading && <div className="m-auto h-1/2 w-full animate-ping text-center">🥳🥳🥳</div>}
-          {data?.map(({ post, author }) => (
-            <div
-              key={post.id}
-              className="relative mb-2 rounded-md border-4 bg-gray-400 p-4 text-center text-3xl"
-            >
-              <div className="absolute -left-5 -top-5">
-                <img
-                  src={author?.profileImageUrl}
-                  alt="Post author profile image"
-                  className="h-10 w-10 rounded-full border-2"
-                />
-              </div>
-              <div>{post.content}</div>
-            </div>
+          {data?.map((fullPost) => (
+            <PostView key={fullPost.post.authorId} {...fullPost} />
           ))}
         </div>
       </main>
