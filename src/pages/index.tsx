@@ -60,9 +60,9 @@ const Feed = () => {
   // const { data, isLoading: postsLoading } = { data: [], isLoading: true };
   const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
 
-  if (postsLoading) return <SmileyLoader />
+  if (postsLoading) return <SmileyLoader />;
 
-  if (!data) return <div>Something went wrong!</div>
+  if (!data) return <div>Something went wrong!</div>;
 
   return (
     <div className="justify-top flex min-h-screen flex-col pt-8">
@@ -71,8 +71,7 @@ const Feed = () => {
       ))}
     </div>
   );
-
-}
+};
 
 const Home: NextPage = () => {
   // Clerk user
