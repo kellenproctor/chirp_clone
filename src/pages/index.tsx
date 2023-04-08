@@ -4,6 +4,7 @@ import Head from "next/head";
 import { type RouterOutputs, api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import Image from "next/image";
 
 dayjs.extend(relativeTime);
 
@@ -14,7 +15,13 @@ const CreatePostWizard = () => {
 
   return (
     <div className="flex w-full gap-4 border-y-2 border-slate-400 p-4">
-      <img src={user.profileImageUrl} alt="Your profile image" className="h-16 w-16 rounded-full" />
+      <Image
+        src={user.profileImageUrl}
+        alt="Your profile image"
+        className="rounded-full"
+        width={64}
+        height={64}
+      />
       <input
         type="text"
         placeholder="Type some emojis!"
@@ -30,15 +37,19 @@ const PostView = (props: PostWithUser) => {
   return (
     <div className="relative mb-2 rounded-md border-4 bg-gray-400 p-4 pt-1 text-center text-3xl">
       <div className="absolute -left-5 -top-5">
-        <img
+        <Image
           src={props.author?.profileImageUrl}
           alt="Post author profile image"
-          className="h-10 w-10 rounded-full border-2"
+          className="rounded-full border-2"
+          width={40}
+          height={40}
         />
       </div>
       <div className="pl-2 text-xs">{`@${props.author.username}`}</div>
       <div className="pb-2">{props.post.content}</div>
-      <div className="absolute bottom-1 right-1 text-xs">{dayjs(props.post.createdAt).fromNow()}</div>
+      <div className="absolute bottom-1 right-1 text-xs">
+        {dayjs(props.post.createdAt).fromNow()}
+      </div>
     </div>
   );
 };
