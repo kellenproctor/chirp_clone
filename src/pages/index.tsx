@@ -84,7 +84,8 @@ const Home: NextPage = () => {
   api.posts.getAll.useQuery();
 
   // Return emtpy div if the user isn't loaded
-  // MAYBE CAUSING A MASSIVELY SLOW PAGE??????
+  // This = blank screen until everything is loaded
+  // RETURN TO THIS PART
   // if (!userLoaded) return <div />;
 
   return (
