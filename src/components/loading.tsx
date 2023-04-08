@@ -24,8 +24,16 @@ export function SpinningLoader(props: {size?: number}) {
   );
 }
 
-export const SmileyLoader = () => {
+export const PingingSmileys = () => {
   return <div className="mx-auto animate-ping text-center">🥳🥳🥳</div>
+}
+
+export const SmileyLoader = () => {
+  return (
+    <div className="justify-top flex min-h-screen flex-col pt-8">
+      <PingingSmileys />
+    </div>
+  )
 }
 
 export const LoadingPage = () => {

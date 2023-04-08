@@ -5,6 +5,7 @@ import { type RouterOutputs, api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
+import { SmileyLoader } from "~/components/loading";
 
 dayjs.extend(relativeTime);
 
@@ -47,18 +48,44 @@ const PostView = (props: PostWithUser) => {
       </div>
       <div className="pl-2 text-xs">{`@${props.author.username}`}</div>
       <div className="pb-2">{props.post.content}</div>
-      <div className="absolute bottom-1 right-1 text-xs">
+      <div className="absolute bottom-1 right-1 text-xs text-gray-500">
         {dayjs(props.post.createdAt).fromNow()}
       </div>
     </div>
   );
 };
 
+const Feed = () => {
+  // For testing the loaders
+  // const { data, isLoading: postsLoading } = { data: [], isLoading: true };
+  const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
+
+  if (postsLoading) return <SmileyLoader />
+
+  if (!data) return <div>Something went wrong!</div>
+
+  return (
+    <div className="justify-top flex min-h-screen flex-col pt-8">
+      {data?.map((fullPost) => (
+        <PostView key={fullPost.post.authorId} {...fullPost} />
+      ))}
+    </div>
+  );
+
+}
+
 const Home: NextPage = () => {
   // Clerk user
-  const user = useUser();
-  const { data, isLoading } = api.posts.getAll.useQuery();
-  // const { data, isLoading } = {data: [], isLoading: true};
+  const { isSignedIn, isLoaded: userLoaded } = useUser();
+
+  // Start fetching data ASAP
+  // React query will use cached data (eg for the Feed component)
+  // as long as the data is the same
+  api.posts.getAll.useQuery();
+
+  // Return emtpy div if the user isn't loaded
+  // MAYBE CAUSING A MASSIVELY SLOW PAGE??????
+  // if (!userLoaded) return <div />;
 
   return (
     <>
@@ -69,7 +96,7 @@ const Home: NextPage = () => {
       </Head>
       <main className="mx-auto flex w-screen flex-col items-center bg-stone-800 md:max-w-2xl lg:max-w-4xl">
         <div className="flex w-full justify-end px-8 py-4">
-          {!user.isSignedIn ? (
+          {!isSignedIn ? (
             <SignInButton />
           ) : (
             <div className="flex gap-4 rounded-md border-b-4 border-b-slate-400 p-3">
@@ -79,12 +106,7 @@ const Home: NextPage = () => {
           )}
         </div>
         <CreatePostWizard />
-        <div className="flex min-h-screen flex-col justify-center">
-          {isLoading && <div className="m-auto h-1/2 w-full animate-ping text-center">🥳🥳🥳</div>}
-          {data?.map((fullPost) => (
-            <PostView key={fullPost.post.authorId} {...fullPost} />
-          ))}
-        </div>
+        <Feed />
       </main>
     </>
   );
