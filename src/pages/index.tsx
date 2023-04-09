@@ -81,7 +81,7 @@ const Feed = () => {
   return (
     <div className="justify-top flex min-h-screen flex-col pt-8">
       {data.map((fullPost) => (
-        <PostView key={fullPost.post.authorId} {...fullPost} />
+        <PostView key={fullPost.post.id} {...fullPost} />
       ))}
     </div>
   );
