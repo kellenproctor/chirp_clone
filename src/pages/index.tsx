@@ -6,11 +6,21 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
 import { SmileyLoader } from "~/components/loading";
+import { useState } from "react";
 
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
   const { user } = useUser();
+  const [input, setInput] = useState("");
+  const ctx = api.useContext();
+
+  const { mutate, isLoading: isPosting } = api.posts.createPost.useMutation({
+    onSuccess: () => {
+      setInput("");
+      void ctx.posts.getAll.invalidate();
+    }
+  });
 
   if (!user) return null;
 
@@ -27,7 +37,11 @@ const CreatePostWizard = () => {
         type="text"
         placeholder="Type some emojis!"
         className="grow rounded-md bg-transparent pl-4 text-4xl outline-none"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        disabled={isPosting}
       />
+      <button onClick={() => mutate({ content: input })}>Post</button>
     </div>
   );
 };
@@ -36,8 +50,8 @@ type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 
 const PostView = (props: PostWithUser) => {
   return (
-    <div className="relative mb-2 rounded-md border-4 bg-gray-400 p-4 pt-1 text-center text-3xl">
-      <div className="absolute -left-5 -top-5">
+    <div className="relative mb-2 mt-3 rounded-md border-4 bg-gray-400 p-4 pt-1 text-center text-3xl">
+      <div className="absolute -left-5 -top-2">
         <Image
           src={props.author?.profileImageUrl}
           alt="Post author profile image"
@@ -66,7 +80,7 @@ const Feed = () => {
 
   return (
     <div className="justify-top flex min-h-screen flex-col pt-8">
-      {data?.map((fullPost) => (
+      {data.map((fullPost) => (
         <PostView key={fullPost.post.authorId} {...fullPost} />
       ))}
     </div>
