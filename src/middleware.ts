@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Set the paths that don't require the user to be signed in
-const publicPaths = ["/", "/sign-in*", "/sign-up*"];
+const publicPaths = ["/", "/sign-in*", "/sign-up*", "/api/trpc/posts.getAll"];
 
 const isPublic = (path: string) => {
   return publicPaths.find((x) =>
@@ -11,11 +11,14 @@ const isPublic = (path: string) => {
   );
 };
 
-
 export default withClerkMiddleware((req: NextRequest) => {
-  if (isPublic(req.nextUrl.pathname)) {
+  // Useful for debugging
+  const path = req.nextUrl.pathname;
+  const publicPath = isPublic(path);
+  if (publicPath) {
     return NextResponse.next();
   }
+
   // if the user is not signed in, redirect them to the sign in page
   const { userId } = getAuth(req);
 
@@ -25,6 +28,7 @@ export default withClerkMiddleware((req: NextRequest) => {
     signInUrl.searchParams.set("redirect_url", req.url);
     return NextResponse.redirect(signInUrl);
   }
+
   return NextResponse.next();
 });
 
