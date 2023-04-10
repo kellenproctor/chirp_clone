@@ -18,7 +18,7 @@ const filterUserForClient = (user: User) => {
 // Create a new ratelimiter, that allows 5 requests per 1 minute
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(5, "1 m"),
+  limiter: Ratelimit.slidingWindow(3, "1 m"),
   analytics: true,
 });
 
@@ -58,7 +58,7 @@ export const postsRouter = createTRPCRouter({
   }),
 
   createPost: privateProcedure.input(z.object({
-    content: z.string().emoji().min(1).max(255),
+    content: z.string().emoji("Only emojis are allowed").min(1).max(255),
   })).mutation(async ({ ctx, input }) => {
     const authorId = ctx.userId;
     const content = input.content;
