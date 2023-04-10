@@ -5,7 +5,7 @@ import { type RouterOutputs, api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
-import { SmileyLoader } from "~/components/loading";
+import { SmileyLoader, SpinningLoader } from "~/components/loading";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 
@@ -34,7 +34,7 @@ const CreatePostWizard = () => {
   if (!user) return null;
 
   return (
-    <div className="flex w-full gap-4 border-y-2 border-slate-400 p-4">
+    <div className="flex w-full items-center gap-4 border-y-2 border-slate-400 p-4">
       <Image
         src={user.profileImageUrl}
         alt="Your profile image"
@@ -48,9 +48,19 @@ const CreatePostWizard = () => {
         className="grow rounded-md bg-transparent pl-4 text-4xl outline-none"
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            mutate({ content: input });
+          }
+        }}
         disabled={isPosting}
       />
-      <button onClick={() => mutate({ content: input })}>Post</button>
+      {input !== "" && (
+        <button onClick={() => mutate({ content: input })} hidden={isPosting}>
+          Post
+        </button>
+      )}
+      {isPosting && <SpinningLoader size={40} />}
     </div>
   );
 };
