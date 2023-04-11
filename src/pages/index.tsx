@@ -8,6 +8,7 @@ import Image from "next/image";
 import { SmileyLoader, SpinningLoader } from "~/components/loading";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import Link from "next/link";
 
 dayjs.extend(relativeTime);
 
@@ -79,11 +80,14 @@ const PostView = (props: PostWithUser) => {
           height={40}
         />
       </div>
-      <div className="pl-2 text-xs">{`@${props.author.username}`}</div>
+      <Link
+        href={`/@${props.author.username}`}
+        className="pl-2 text-xs"
+      >{`@${props.author.username}`}</Link>
       <div className="pb-2">{props.post.content}</div>
-      <div className="absolute bottom-1 right-1 text-xs text-gray-500">
+      <Link href={`/post/${props.post.id}`} className="absolute bottom-1 right-1 text-xs text-gray-500">
         {dayjs(props.post.createdAt).fromNow()}
-      </div>
+      </Link>
     </div>
   );
 };
@@ -108,7 +112,8 @@ const Feed = () => {
 
 const Home: NextPage = () => {
   // Clerk user
-  const { isSignedIn, isLoaded: userLoaded } = useUser();
+  // const { isSignedIn, isLoaded: userLoaded } = useUser();
+  const { isSignedIn } = useUser();
 
   // Start fetching data ASAP
   // React query will use cached data (eg for the Feed component)
