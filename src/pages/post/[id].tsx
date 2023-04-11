@@ -5,6 +5,7 @@ import { type RouterOutputs, api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
+import { PageLayout } from "~/components/layout";
 
 dayjs.extend(relativeTime);
 
@@ -51,7 +52,7 @@ const SinglePostPage: NextPage = () => {
       <Head>
         <title>Post</title>
       </Head>
-      <main className="mx-auto flex w-screen flex-col items-center bg-stone-800 md:max-w-2xl lg:max-w-4xl">
+      <PageLayout>
         <div className="flex w-full justify-end px-8 py-4">
           {!isSignedIn ? (
             <SignInButton />
@@ -63,7 +64,7 @@ const SinglePostPage: NextPage = () => {
           )}
         </div>
         Post Page
-      </main>
+      </PageLayout>
     </>
   );
 };

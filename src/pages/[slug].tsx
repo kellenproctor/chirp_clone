@@ -1,57 +1,30 @@
 import { SignInButton, SignOutButton, UserButton, useUser } from "@clerk/nextjs";
-import { type NextPage } from "next";
+import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
-import { type RouterOutputs, api } from "~/utils/api";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import { api } from "~/utils/api";
+import { createProxySSGHelpers } from "@trpc/react-query/ssg";
+import { appRouter } from "~/server/api/root";
+import SuperJSON from "superjson";
+import { prisma } from "~/server/db";
+import { PageLayout } from "~/components/layout";
 import Image from "next/image";
 
-dayjs.extend(relativeTime);
-
-type PostWithUser = RouterOutputs["posts"]["getAll"][number];
-
-const PostView = (props: PostWithUser) => {
-  return (
-    <div className="relative mb-2 mt-3 rounded-md border-4 bg-gray-400 p-4 pt-1 text-center text-3xl">
-      <div className="absolute -left-5 -top-2">
-        <Image
-          src={props.author?.profileImageUrl}
-          alt="Post author profile image"
-          className="rounded-full border-2"
-          width={40}
-          height={40}
-        />
-      </div>
-      <div className="pl-2 text-xs">{`@${props.author.username}`}</div>
-      <div className="pb-2">{props.post.content}</div>
-      <div className="absolute bottom-1 right-1 text-xs text-gray-500">
-        {dayjs(props.post.createdAt).fromNow()}
-      </div>
-    </div>
-  );
-};
-
-const ProfilePage: NextPage = () => {
+const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
+  const { data } = api.profile.getUserByUsername.useQuery({
+    username,
+  });
   // Clerk user
   // const { isSignedIn, isLoaded: userLoaded } = useUser();
   const { isSignedIn } = useUser();
 
-  // Start fetching data ASAP
-  // React query will use cached data (eg for the Feed component)
-  // as long as the data is the same
-  api.posts.getAll.useQuery();
-
-  // Return emtpy div if the user isn't loaded
-  // This = blank screen until everything is loaded
-  // RETURN TO THIS PART
-  // if (!userLoaded) return <div />;
+  if (!data) return <div>404</div>;
 
   return (
     <>
       <Head>
-        <title>Profile</title>
+        <title>{data.username}</title>
       </Head>
-      <main className="mx-auto flex w-screen flex-col items-center bg-stone-800 md:max-w-2xl lg:max-w-4xl">
+      <PageLayout>
         <div className="flex w-full justify-end px-8 py-4">
           {!isSignedIn ? (
             <SignInButton />
@@ -62,10 +35,46 @@ const ProfilePage: NextPage = () => {
             </div>
           )}
         </div>
-        Profile Page
-      </main>
+        <div className="relative w-full border-b text-center">
+          <Image
+            src={data.profileImageUrl}
+            alt="The user's picture"
+            width={96}
+            height={96}
+            className="absolute bottom-0 left-0 -mb-[48px] ml-4 rounded-full border-2"
+          />
+          <div>{data.username}</div>
+        </div>
+        <div className="h-32 w-full border bg-stone-900"></div>
+      </PageLayout>
     </>
   );
+};
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  const ssg = createProxySSGHelpers({
+    router: appRouter,
+    ctx: { prisma, userId: null },
+    transformer: SuperJSON,
+  });
+
+  const slug = context.params?.slug;
+  if (typeof slug !== "string") throw new Error("no slug");
+
+  const username = slug.replace("@", "");
+
+  await ssg.profile.getUserByUsername.prefetch({ username });
+
+  return {
+    props: {
+      trpcState: ssg.dehydrate(),
+      username,
+    },
+  };
+};
+
+export const getStaticPaths = () => {
+  return { paths: [], fallback: "blocking" };
 };
 
 export default ProfilePage;
