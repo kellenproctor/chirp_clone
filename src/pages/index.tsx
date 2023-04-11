@@ -1,6 +1,5 @@
 import { SignInButton, SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
-import Head from "next/head";
 import { type RouterOutputs, api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -9,6 +8,7 @@ import { SmileyLoader, SpinningLoader } from "~/components/loading";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import { PageLayout } from "~/components/layout";
 
 dayjs.extend(relativeTime);
 
@@ -129,7 +129,7 @@ const Home: NextPage = () => {
   // if (!userLoaded) return <div />;
 
   return (
-    <main className="mx-auto flex w-screen flex-col items-center bg-stone-800 md:max-w-2xl lg:max-w-4xl">
+    <PageLayout>
       <div className="flex w-full justify-end px-8 py-4">
         {!isSignedIn ? (
           <SignInButton />
@@ -142,7 +142,7 @@ const Home: NextPage = () => {
       </div>
       <CreatePostWizard />
       <Feed />
-    </main>
+    </PageLayout>
   );
 };
 
