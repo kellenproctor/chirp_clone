@@ -1,56 +1,26 @@
 import { SignInButton, SignOutButton, UserButton, useUser } from "@clerk/nextjs";
-import { type NextPage } from "next";
+import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
-import { type RouterOutputs, api } from "~/utils/api";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import Image from "next/image";
+import { api } from "~/utils/api";
 import { PageLayout } from "~/components/layout";
+import { PostView } from "~/components/postView";
+import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 
-dayjs.extend(relativeTime);
 
-type PostWithUser = RouterOutputs["posts"]["getAll"][number];
-
-const PostView = (props: PostWithUser) => {
-  return (
-    <div className="relative mb-2 mt-3 rounded-md border-4 bg-gray-400 p-4 pt-1 text-center text-3xl">
-      <div className="absolute -left-5 -top-2">
-        <Image
-          src={props.author?.profileImageUrl}
-          alt="Post author profile image"
-          className="rounded-full border-2"
-          width={40}
-          height={40}
-        />
-      </div>
-      <div className="pl-2 text-xs">{`@${props.author.username}`}</div>
-      <div className="pb-2">{props.post.content}</div>
-      <div className="absolute bottom-1 right-1 text-xs text-gray-500">
-        {dayjs(props.post.createdAt).fromNow()}
-      </div>
-    </div>
-  );
-};
-
-const SinglePostPage: NextPage = () => {
+const SinglePostPage: NextPage<{ id: string }> = ({ id }) => {
+  const { data } = api.posts.getById.useQuery({
+    id,
+  });
   // Clerk user
   // const { isSignedIn, isLoaded: userLoaded } = useUser();
   const { isSignedIn } = useUser();
 
-  // Start fetching data ASAP
-  // React query will use cached data (eg for the Feed component)
-  // as long as the data is the same
-  api.posts.getAll.useQuery();
-
-  // Return emtpy div if the user isn't loaded
-  // This = blank screen until everything is loaded
-  // RETURN TO THIS PART
-  // if (!userLoaded) return <div />;
+  if (!data) return <div>404</div>;
 
   return (
     <>
       <Head>
-        <title>Post</title>
+        <title>{`${data.post.content} - @${data.author.username}`}</title>
       </Head>
       <PageLayout>
         <div className="flex w-full justify-end px-8 py-4">
@@ -63,10 +33,30 @@ const SinglePostPage: NextPage = () => {
             </div>
           )}
         </div>
-        Post Page
+        <PostView {...data} />
       </PageLayout>
     </>
   );
+};
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  const ssg = generateSSGHelper();
+
+  const id = context.params?.id;
+  if (typeof id !== "string") throw new Error("no id");
+
+  await ssg.posts.getById.prefetch({id});
+
+  return {
+    props: {
+      trpcState: ssg.dehydrate(),
+      id,
+    },
+  };
+};
+
+export const getStaticPaths = () => {
+  return { paths: [], fallback: "blocking" };
 };
 
 export default SinglePostPage;
