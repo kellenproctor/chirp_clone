@@ -8,6 +8,24 @@ import SuperJSON from "superjson";
 import { prisma } from "~/server/db";
 import { PageLayout } from "~/components/layout";
 import Image from "next/image";
+import { SpinningLoader } from "~/components/loading";
+import { PostView } from "~/components/postView";
+
+const ProfileFeed = (props: {userId: string}) => {
+  const {data, isLoading} = api.posts.getPostsByUserId.useQuery({userId: props.userId});
+
+  if (isLoading) return <SpinningLoader />;
+
+  if (!data || data.length === 0) return <div>User has no posts, yet.</div>;
+
+  return (
+    <div className="flex flex-col">
+      {data.map((fullPost) => (
+        <PostView key={fullPost.post.id} {...fullPost} />
+      ))}
+    </div>
+  );
+};
 
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
   const { data } = api.profile.getUserByUsername.useQuery({
@@ -45,7 +63,8 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
           />
           <div>{data.username}</div>
         </div>
-        <div className="h-32 w-full border bg-stone-900"></div>
+        <div className="h-32 w-full border bg-stone-900 mb-4"></div>
+        <ProfileFeed userId={data.id} />
       </PageLayout>
     </>
   );
